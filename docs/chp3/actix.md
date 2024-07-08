@@ -24,3 +24,7 @@ Responder trait -> can be converted into HttpResponse.
 ### Main
 
 `#[actix_web::main]` -> Marks async main function as the Actix Web system entry-point.
+
+### Extractors
+
+Extract certain pieces of information from an incoming request. Path, Query, Json etc...
