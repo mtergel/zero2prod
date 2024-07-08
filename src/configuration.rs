@@ -15,15 +15,6 @@ pub struct DatabaseSettings {
     pub database_name: String,
 }
 
-pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    let settings = config::Config::builder()
-        .add_source(config::File::with_name("configuration.yaml"))
-        .add_source(config::Environment::with_prefix("APP"))
-        .build()?;
-
-    settings.try_deserialize::<Settings>()
-}
-
 impl DatabaseSettings {
     pub fn connection_string(&self) -> String {
         format!(
@@ -39,4 +30,15 @@ impl DatabaseSettings {
             self.username, self.password, self.host, self.port
         )
     }
+}
+
+pub fn get_configuration() -> Result<Settings, config::ConfigError> {
+    let settings = config::Config::builder()
+        .add_source(config::File::new(
+            "configuration.yaml",
+            config::FileFormat::Yaml,
+        ))
+        .build()?;
+
+    settings.try_deserialize::<Settings>()
 }
