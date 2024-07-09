@@ -40,6 +40,15 @@ tree like processing pipleline.
 
 ## Tracing
 
-tracing expands upon logging-style diagnostics
+tracing expands upon logging-style diagnostics, log is the minimum, tracing is now
+established as the modern backbone of the whole diagnostics and instrumentation ecosystem
 
 `subscriber_email = %form.email,` -> % means to use display implementation
+use tracing instrument proc macros!, so cool! significantly lowers the effort required
+to instrument your code.
+
+
+### Secrecy
+tracking instrument -> all arguments are logged, you have to opt-out?
+you can prevent this scenerio by using a wrapper that explicitly marks which fields
+are considered to be sensitve - `secrecy::Secret`
