@@ -16,3 +16,9 @@ cargo watch -x check -x test -x run
   Mostly for integration testing, exactly the same way a user would.
 
 We converted the binary into a library to share the code for testing.
+
+Inner Development Loop
+- Make a change;
+- Compile the application;
+- Run tests;
+- Run the application;
