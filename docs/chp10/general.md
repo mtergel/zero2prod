@@ -9,3 +9,8 @@ Naive approach - add three columns + Algothim -> tedious
 
 Example
 `$argon2id$v=19$m=65536,t=2,p=1$gZiV/M1gPc22ElAH/Jh1Hw$CWOrkoo7oJBQ/iyh7uJ0LO2aLEfrHwTWllSAxT0zRn`
+
+## Async / Polling
+
+Offload our CPU-intensive task to a separate threadpool using `tokio::task::spawn_blocking`.
+Those threads are reserved for blocking operations and do not interfere with the scheduling of async tasks.
