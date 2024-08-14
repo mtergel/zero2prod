@@ -1,4 +1,5 @@
 use crate::helpers::{spawn_app, ConfirmationLinks, TestApp};
+use uuid::Uuid;
 use wiremock::matchers::{any, method, path};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -106,6 +107,65 @@ async fn requests_missing_authorization_are_rejected() {
         resp.headers()["WWW-Authenticate"]
     );
 }
+
+#[actix_web::test]
+async fn non_existing_user_is_rejected() {
+    let app = spawn_app().await;
+    let username = Uuid::new_v4().to_string();
+    let password = Uuid::new_v4().to_string();
+
+    let newsletter_request_body = serde_json::json!({
+        "title": "Newsletter title",
+        "content": {
+            "text": "Newsletter body as plain text",
+            "html": "<p>Newsletter body as HTML</p>",
+        }
+    });
+
+    let resp = reqwest::Client::new()
+        .post(&format!("{}/newsletters", &app.address))
+        .basic_auth(username, Some(password))
+        .json(&newsletter_request_body)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert_eq!(resp.status().as_u16(), 401);
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        resp.headers()["WWW-Authenticate"]
+    );
+}
+
+#[actix_web::test]
+async fn invalid_password_is_rejected() {
+    let app = spawn_app().await;
+    let username = &app.test_user.username;
+    let password = Uuid::new_v4().to_string();
+
+    let newsletter_request_body = serde_json::json!({
+        "title": "Newsletter title",
+        "content": {
+            "text": "Newsletter body as plain text",
+            "html": "<p>Newsletter body as HTML</p>",
+        }
+    });
+
+    let resp = reqwest::Client::new()
+        .post(&format!("{}/newsletters", &app.address))
+        .basic_auth(username, Some(password))
+        .json(&newsletter_request_body)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+
+    assert_eq!(resp.status().as_u16(), 401);
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        resp.headers()["WWW-Authenticate"]
+    );
+}
+
 
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";

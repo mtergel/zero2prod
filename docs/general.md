@@ -50,3 +50,9 @@ New one
 As the blog author,
 I want to send an email to all my confirmed subscribers, So that I can notify them when new content is published.
 ```
+
+Tests with logs
+
+```sh
+TEST_LOG=true cargo t newsletters_are_not_delivered | bunyan
+```

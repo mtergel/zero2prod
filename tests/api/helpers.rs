@@ -1,5 +1,8 @@
+use argon2::{
+    password_hash::{PasswordHasher, SaltString},
+    Argon2,
+};
 use once_cell::sync::Lazy;
-use sha3::{Digest, Sha3_256};
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use wiremock::MockServer;
@@ -27,7 +30,7 @@ pub struct TestApp {
     pub db_pool: PgPool,
     pub email_server: MockServer,
     pub port: u16,
-    test_user: TestUser,
+    pub test_user: TestUser,
 }
 
 pub struct ConfirmationLinks {
@@ -153,11 +156,13 @@ impl TestUser {
     }
 
     async fn store(&self, pool: &PgPool) {
-        let mut hasher = Sha3_256::new();
-        hasher.update(&self.password);
+        let salt = SaltString::generate(&mut rand::thread_rng());
 
-        let hash_res = hasher.finalize();
-        let password_hash = hex::encode(hash_res);
+        // no need to setup params test user
+        let password_hash = Argon2::default()
+            .hash_password(self.password.as_bytes(), &salt)
+            .unwrap()
+            .to_string();
 
         sqlx::query!(
             "INSERT INTO users (user_id, username, password_hash)
