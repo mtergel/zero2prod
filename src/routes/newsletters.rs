@@ -7,6 +7,7 @@ use anyhow::Context;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use secrecy::{ExposeSecret, Secret};
+use sha3::{Digest, Sha3_256};
 use sqlx::PgPool;
 
 use crate::domain::SubscriberEmail;
@@ -141,14 +142,20 @@ async fn validate_credentials(
     credentials: Credentials,
     pool: &PgPool,
 ) -> Result<uuid::Uuid, PublishError> {
+    let mut hasher = Sha3_256::new();
+    hasher.update(credentials.password.expose_secret().as_bytes());
+
+    let hash_res = hasher.finalize();
+    let password_hash = hex::encode(hash_res);
+
     let user_id: Option<_> = sqlx::query!(
         r#"
             SELECT user_id
             FROM users
-            WHERE username = $1 AND password = $2
+            WHERE username = $1 AND password_hash = $2
         "#,
         credentials.username,
-        credentials.password.expose_secret()
+        password_hash
     )
     .fetch_optional(pool)
     .await
